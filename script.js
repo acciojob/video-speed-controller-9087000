@@ -1,73 +1,60 @@
-// const inputs = document.querySelectorAll('.controls input');
+// Get elements
+const video = document.querySelector('.viewer');
+const toggle = document.querySelector('.toggle');
+const progress = document.querySelector('.progress');
+const progressFilled = document.querySelector('.progress__filled');
+const volumeSlider = document.querySelector('input[name="volume"]');
+const playbackSpeedSlider = document.querySelector('input[name="playbackSpeed"]');
+const rewindButton = document.querySelector('.rewind');
+const forwardButton = document.querySelector('.forward');
 
-//     function handleUpdate() {
-//       const suffix = this.dataset.sizing || '';
-//       document.documentElement.style.setProperty(`--${this.name}`, this.value + suffix);
-//     }
-
-//     inputs.forEach(input => input.addEventListener('change', handleUpdate));
-//     inputs.forEach(input => input.addEventListener('mousemove', handleUpdate));
-// Get DOM elements
-const player = document.querySelector('.player');
-const video = player.querySelector('.viewer');
-const progress = player.querySelector('.progress');
-const progressBar = player.querySelector('.progress__filled');
-const toggle = player.querySelector('.toggle');
-const volume = player.querySelector('input[name="volume"]');
-const playbackSpeed = player.querySelector('input[name="playbackRate"]');
-const skipButtons = player.querySelectorAll('[data-skip]');
-
-// Play/Pause functionality
+// Functions
 function togglePlay() {
-  if (video.paused) {
-    video.play();
-  } else {
-    video.pause();
-  }
+    const method = video.paused ? 'play' : 'pause';
+    video[method]();
 }
 
-// Update Play/Pause button appearance
-function updatePlayButton() {
-  toggle.textContent = video.paused ? '►' : '❚ ❚';
+function updateButton() {
+    const icon = video.paused ? '►' : '❚ ❚';
+    toggle.textContent = icon;
 }
 
-// Update video progress
-function updateProgress() {
-  const progressPercent = (video.currentTime / video.duration) * 100;
-  progressBar.style.flexBasis = `${progressPercent}%`;
+function handleVolumeChange() {
+    video.volume = volumeSlider.value;
 }
 
-// Set video progress based on clicked position on progress bar
-function setProgress(e) {
-  const progressWidth = progress.offsetWidth;
-  const clickedPosition = e.offsetX;
-  const newTime = (clickedPosition / progressWidth) * video.duration;
-  video.currentTime = newTime;
+function handlePlaybackSpeedChange() {
+    video.playbackRate = playbackSpeedSlider.value;
 }
 
-// Set volume of the video
-function setVolume() {
-  video.volume = volume.value;
+function handleProgress() {
+    const percent = (video.currentTime / video.duration) * 100;
+    progressFilled.style.width = `${percent}%`;
 }
 
-// Set playback speed of the video
-function setPlaybackSpeed() {
-  video.playbackRate = playbackSpeed.value;
+function scrub(e) {
+    const scrubTime = (e.offsetX / progress.offsetWidth) * video.duration;
+    video.currentTime = scrubTime;
 }
 
-// Skip video forward or backward based on data-skip value
-function skip() {
-  const skipAmount = parseFloat(this.dataset.skip);
-  video.currentTime += skipAmount;
+function rewind() {
+    video.currentTime -= 10;
 }
 
-// Add event listeners
+function forward() {
+    video.currentTime += 25;
+}
+
+// Event listeners
 video.addEventListener('click', togglePlay);
-video.addEventListener('play', updatePlayButton);
-video.addEventListener('pause', updatePlayButton);
-video.addEventListener('timeupdate', updateProgress);
+video.addEventListener('play', updateButton);
+video.addEventListener('pause', updateButton);
+video.addEventListener('timeupdate', handleProgress);
+
 toggle.addEventListener('click', togglePlay);
-progress.addEventListener('click', setProgress);
-volume.addEventListener('input', setVolume);
-playbackSpeed.addEventListener('input', setPlaybackSpeed);
-skipButtons.forEach((button) => button.addEventListener('click', skip));
+volumeSlider.addEventListener('input', handleVolumeChange);
+playbackSpeedSlider.addEventListener('input', handlePlaybackSpeedChange);
+
+progress.addEventListener('click', scrub);
+rewindButton.addEventListener('click', rewind);
+forwardButton.addEventListener('click', forward);

@@ -1,56 +1,51 @@
+const inputs = document.querySelectorAll('.controls input');
+const player = document.querySelector(".player");
+const video = player.querySelector(".viewer");
+const progress = player.querySelector(".progress");
+const progressBar = player.querySelector(".progress__filled");
+const toggle = player.querySelector(".toggle");
+const skipButtons = player.querySelectorAll("[data-skip]");
+const ranges = player.querySelectorAll(".player__slider");
 
-// Select elements
-const player = document.querySelector('.player');
-const video = player.querySelector('.viewer');
-const toggle = player.querySelector('.toggle');
-const skipButtons = player.querySelectorAll('[data-skip]');
-const ranges = player.querySelectorAll('.player__slider');
-const progress = player.querySelector('.progress');
-const progressBar = player.querySelector('.progress__filled');
+    function handleUpdate() {
+      const suffix = this.dataset.sizing || '';
+      document.documentElement.style.setProperty(`--${this.name}`, this.value + suffix);
+    }
+toggle.addEventListener("click", togglePlay);
 
-// Toggle play/pause
+    inputs.forEach(input => input.addEventListener('change', handleUpdate));
+    inputs.forEach(input => input.addEventListener('mousemove', handleUpdate));
+video.addEventListener("timeupdate", handlerProgress);
+
+for (let skip of skipButtons) {
+  skip.addEventListener("click", forwardOrBackward);
+}
+
+for (let range of ranges) {
+  range.addEventListener("change", handleRangeUpdate);
+}
+
 function togglePlay() {
-  const method = video.paused ? 'play' : 'pause';
-  video[method]();
+  if (video.paused) {
+    video.play();
+    toggle.innerText = "❚ ❚";
+  } else {
+    video.pause();
+    toggle.innerText = "►";
+  }
 }
 
-// Update play/pause button
-function updateButton() {
-  toggle.textContent = video.paused ? '►' : '❚ ❚';
+function handlerProgress() {
+  const currentProgress = (video.currentTime / video.duration) * 100;
+  progressBar.style.flexBasis = `${currentProgress}%`;
 }
 
-// Skip forward/backward
-function skip() {
-  const skipValue = parseFloat(this.dataset.skip);
-  video.currentTime += skipValue;
+function forwardOrBackward(event) {
+  let element = event.target;
+  video.currentTime += parseFloat(element.attributes["data-skip"].value);
 }
 
-// Handle volume and playback speed
-function handleRangeUpdate() {
-  video[this.name] = this.value;
+function handleRangeUpdate(event) {
+  let element = event.target;
+  video[element.name] = element.value;
 }
-
-// Update progress bar
-function handleProgress() {
-  const percent = (video.currentTime / video.duration) * 100;
-  progressBar.style.width = `${percent}%`;
-}
-
-// Scrub through the video
-function scrub(e) {
-  const scrubTime = (e.offsetX / progress.offsetWidth) * video.duration;
-  video.currentTime = scrubTime;
-}
-
-// Event listeners
-video.addEventListener('click', togglePlay);
-video.addEventListener('play', updateButton);
-video.addEventListener('pause', updateButton);
-video.addEventListener('timeupdate', handleProgress);
-
-toggle.addEventListener('click', togglePlay);
-skipButtons.forEach(button => button.addEventListener('click', skip));
-ranges.forEach(range => range.addEventListener('input', handleRangeUpdate));
-
-progress.addEventListener('click', scrub);
-progress.addEventListener('mousemove', (e) => e.buttons && scrub(e));
